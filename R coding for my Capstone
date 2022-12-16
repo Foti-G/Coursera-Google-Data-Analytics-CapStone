@@ -1,0 +1,52 @@
+# Packages that I need in R are already installed , I will bring up the libraries needed for my analysis.
+
+# tiyverse includes multiple packages that are commonly used see output below.
+library(tidyverse)
+
+# Janitor for easier cleanup.
+library(janitor)
+
+# Lubridate allow us to manipulate time date in our data sets.
+library(lubridate)
+
+options(dplyr.summarise.inform = FALSE)
+
+# Data is organized in 13 columns with a combined total of over 5 million observations
+
+BkeDat1 <- read_csv("../input/bikerental-capstone/01.2021_BkTrp.csv")
+BkeDat2 <- read_csv("../input/bikerental-capstone/02.2021_BkTrp.csv")
+BkeDat3 <- read_csv("../input/bikerental-capstone/03.2021_BkTrp.csv")
+BkeDat4 <- read_csv("../input/bikerental-capstone/04.2021_BkTrp.csv")
+BkeDat5 <- read_csv("../input/bikerental-capstone/05.2021_BkTrp.csv")
+BkeDat6 <- read_csv("../input/bikerental-capstone/06.2021_BkTrp.csv")
+BkeDat7 <- read_csv("../input/bikerental-capstone/07.2021_BkTrp.csv")
+BkeDat8 <- read_csv("../input/bikerental-capstone/08.2021_BkTrp.csv")
+BkeDat9 <- read_csv("../input/bikerental-capstone/09.2021_BkTrp.csv")
+BkeDat10 <- read_csv("../input/bikerental-capstone/10.2021_BkTrp.csv")
+BkeDat11 <- read_csv("../input/bikerental-capstone/11.2021_BkTrp.csv")
+BkeDat12 <- read_csv("../input/bikerental-capstone/12.2021_BkTrp.csv")
+
+compare_df_cols(BkeDat1,BkeDat2,BkeDat3,BkeDat4,BkeDat5,BkeDat6,BkeDat7,BkeDat8,BkeDat9,BkeDat10,BkeDat11,BkeDat12)
+
+# checked all 12 files, all are in good order. Below is a sample output of one file. 
+str(BkeDat1)
+
+BkeData2021 <- rbind(BkeDat1,BkeDat2,BkeDat3,BkeDat4,BkeDat5,BkeDat6,BkeDat7,BkeDat8,BkeDat9,BkeDat10,BkeDat11,BkeDat12)
+## verify structure of data
+
+str(BkeData2021)
+
+## Run a summary of the combined file.
+
+summary(BkeData2021)
+
+## Glimpse will yield the data types, rows, and colums contained in our files
+glimpse(BkeData2021)
+
+# Removing unneeded columns
+BkeData2021 <- BkeData2021 %>% select(-c(ride_id, start_station_id, start_station_id, end_station_id, end_station_name))
+
+
+
+
+
