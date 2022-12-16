@@ -1,8 +1,8 @@
 # Coursera-Google-Data-Analytics-CapStone
 Bike Share Data Analytics 
 https://www.kaggle.com/code/fotigalanis/google-data-analytics-capstone/notebook
+
 Introduction
-image.png
 
 Hello, my name is Foti I have ventured into data analysis after spending enough time in both the health care and services industries. Since childhood I had a interest in programming and computer technology, which led me to further explore and learn about data analysis and programming languages. Having worked in a science based field, I felt it was time for a change by learning about R, Python, programming, and data analysis. This renewed interest has guided me to pursue a career change at this time in my life.
 Overview
