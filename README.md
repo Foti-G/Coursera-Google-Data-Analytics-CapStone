@@ -34,3 +34,5 @@ Deliverables
 5. Supporting visualizations and key findings
 
 6. Your top three recommendations based on your analysis
+
+The Notebook can be viewed at this link on Kaggle : https://www.kaggle.com/code/fotigalanis/google-data-analytics-capstone/notebook
