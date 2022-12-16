@@ -1,3 +1,10 @@
+# The following are direct code in R that I used to create a notebook for a Data Analysis Capstone project. 
+# the public dataset and notebook can be found at the following Kaggle Link. 
+# https://www.kaggle.com/code/fotigalanis/google-data-analytics-capstone/notebook
+# Thank you :)
+
+### Process phase
+
 # Packages that I need in R are already installed , I will bring up the libraries needed for my analysis.
 
 # tiyverse includes multiple packages that are commonly used see output below.
@@ -8,11 +15,9 @@ library(janitor)
 
 # Lubridate allow us to manipulate time date in our data sets.
 library(lubridate)
-
 options(dplyr.summarise.inform = FALSE)
 
 # Data is organized in 13 columns with a combined total of over 5 million observations
-
 BkeDat1 <- read_csv("../input/bikerental-capstone/01.2021_BkTrp.csv")
 BkeDat2 <- read_csv("../input/bikerental-capstone/02.2021_BkTrp.csv")
 BkeDat3 <- read_csv("../input/bikerental-capstone/03.2021_BkTrp.csv")
@@ -31,22 +36,214 @@ compare_df_cols(BkeDat1,BkeDat2,BkeDat3,BkeDat4,BkeDat5,BkeDat6,BkeDat7,BkeDat8,
 # checked all 12 files, all are in good order. Below is a sample output of one file. 
 str(BkeDat1)
 
+# Ready to combine twelve csv files into one to continue to manipulate our data set using the bind function in R.
 BkeData2021 <- rbind(BkeDat1,BkeDat2,BkeDat3,BkeDat4,BkeDat5,BkeDat6,BkeDat7,BkeDat8,BkeDat9,BkeDat10,BkeDat11,BkeDat12)
-## verify structure of data
 
+# verify structure of data
 str(BkeData2021)
 
-## Run a summary of the combined file.
-
+# Run a summary of the combined file.
 summary(BkeData2021)
 
-## Glimpse will yield the data types, rows, and colums contained in our files
+# Glimpse will yield the data types, rows, and colums contained in our files
 glimpse(BkeData2021)
 
 # Removing unneeded columns
 BkeData2021 <- BkeData2021 %>% select(-c(ride_id, start_station_id, start_station_id, end_station_id, end_station_name))
 
+# Verify stucture and unneeded columns were removed
+str(BkeData2021)
+colnames(BkeData2021)
+glimpse(BkeData2021)
 
+# Since we have to analyze the data I will need to add columns to our set with existing data. We need to measure duration of rented bikes.
 
+# Added new column 'tripduration'
+BkeData2021 <-mutate (BkeData2021,tripduration=difftime(ended_at,started_at,units = "secs"))
 
+# Verify new columns is created
+str(BkeData2021)
 
+# Need to divide up the time/date into new columns Months Days hours using Lubridate and as.Date function.
+BkeData2021$start_hour <- lubridate:: hour(BkeData2021$started_at)
+BkeData2021$end_hour <- lubridate:: hour(BkeData2021$ended_at)
+BkeData2021$start_date <- as.Date(BkeData2021$started_at)
+BkeData2021$end_date <- as.Date(BkeData2021$ended_at)
+BkeData2021$month <- format(as.Date(BkeData2021$start_date), "%b")
+BkeData2021$day <- format(as.Date(BkeData2021$start_date), "%d")
+BkeData2021$day_of_week <- format(as.Date(BkeData2021$start_date), "%A") 
+
+# Verify to see new columns were created in the data Frame. 
+glimpse(BkeData2021)
+
+# The Tripduration column "class" needs to be changed from "difftime" to numeric 
+is.numeric(BkeData2021$tripduration)
+#[1] FLASE
+
+class(BkeData2021$tripduration)
+#[1] DIFFTIME
+
+# Changed to numeric
+BkeData2021$tripduration <- as.numeric(BkeData2021$tripduration)
+
+# check to verify it was changes
+is.numeric(BkeData2021$tripduration)
+# [1] TRUE
+
+# Verify current class of data for member_casual column
+class(BkeData2021$member_casual)
+
+# Now change the class to factor. 
+BkeData2021$member_casual <- as.factor(BkeData2021$member_casual)
+
+# Now verify
+is.factor(BkeData2021$member_casual)
+
+### Analyze phase
+summary(BkeData2021$tripduration)
+
+# Lets remove any bike trip that are less than 300 seconds (5 minutes).
+BkeData2021_a <-BkeData2021[!(BkeData2021$tripduration<300),]
+
+# Lets call the summary function to verify that the lower outliers were removed.
+summary(BkeData2021_a$tripduration)
+
+# Now lets remove the upper outliers that are more than 100000 seconds (27.8 hrs).
+BkeData2021_b <-BkeData2021_a[!(BkeData2021_a$tripduration>100000),]
+
+# Now let us call a summary function again to verify that the upper outliers were removed.
+summary(BkeData2021_b$tripduration)
+
+# lets see what out file looks like now using glimpse() function.
+glimpse(BkeData2021_b)
+
+# Finding min, max, mean, and median of the tripduration column, in minutes.
+mean((BkeData2021_b$tripduration)/60)
+median((BkeData2021_b$tripduration)/60)
+max((BkeData2021_b$tripduration)/60)
+min((BkeData2021_b$tripduration)/60)
+
+# Produces a summary of min, max, mean, and median values from our dataset in minutes.
+summary((BkeData2021_b$tripduration)/60)
+
+# Code below will change dataset to sort days of week in order
+BkeData2021_b$day_of_week <- ordered(BkeData2021_b$day_of_week,levels=c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"))
+
+# Verify if ordered day_of_week
+glimpse(BkeData2021_b$day_of_week)
+
+# Do the same for months
+BkeData2021_b$month <- ordered(BkeData2021_b$month,levels=c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"))
+
+glimpse(BkeData2021_b$month)
+
+# Compare trip duration to casual vs member riders, calculate for mean, median, max and min values.
+aggregate(BkeData2021_b$tripduration ~ BkeData2021_b$member_casual,FUN=mean)
+aggregate(BkeData2021_b$tripduration ~ BkeData2021_b$member_casual,FUN=median)
+aggregate(BkeData2021_b$tripduration ~ BkeData2021_b$member_casual,FUN=max)
+aggregate(BkeData2021_b$tripduration ~ BkeData2021_b$member_casual,FUN=min)
+
+# Now we can aggregate data with days of week in order to average ride time by each day for members vs casual users
+aggregate(BkeData2021_b$tripduration ~ BkeData2021_b$member_casual + BkeData2021_b$day_of_week, FUN = mean)
+
+# Now we can aggregate data with months in order to average ride time by each day for members vs casual users
+aggregate(BkeData2021_b$tripduration ~ BkeData2021_b$member_casual + BkeData2021_b$month, FUN = mean)
+
+# Number of rides per month for casual riders (Used a filter to get results).
+BkeData2021_b %>%
+  filter(member_casual !="member") %>%
+  select(member_casual, month) %>%
+  group_by(month) %>%
+  summarise(number_of_rides= n())%>%
+  arrange(month)
+  
+  
+# Number of rides per month for members 
+BkeData2021_b %>%
+  filter(member_casual !="casual") %>%
+  select(member_casual, month) %>%
+  group_by(month) %>%
+  summarise(number_of_rides= n())%>%
+  arrange(month)
+  
+  
+# Since we don't need docked bikes in our data I'll remove it. 
+table(BkeData2021_b$rideable_type)
+BkeData2021_b <- BkeData2021_b[!(BkeData2021_b$rideable_type == "docked_bike"),]
+
+# The finals analysis of our data will be to obtain the 25 most popular places where bikes were rented from in 2021
+
+# Below is one way to obtain mode from a column in a DF. just looking to get the top 25.
+sort(table(BkeData2021_b$start_station_name), decreasing = TRUE)[1:25]
+
+# Now lets create our own data table to be able to graph it.
+
+Locations <- c("Streeter Dr & Grand Ave", "Wells St & Concord Ln", "Michigan Ave & Oak St", "Clark St & Elm St", "Theater on the Lake", 
+               "Millennium Park", "Wells St & Elm St", "Clark St & Lincoln Ave", "Clark St & Armitage Ave", "Wabash Ave & Grand Ave", 
+               "Dearborn St & Erie St", "St. Clair St & Erie St", "Broadway & Barry Ave", "Kingsbury St & Kinzie St", 
+               "Indiana Ave & Roosevelt Rd", "Wells St & Huron St", "Larrabee St & Webster Ave", "Wilton Ave & Belmont Ave", 
+               "New St & Illinois St", "Wells St & Evergreen Ave", "Green St & Madison St", "Ashland Ave & Division St", 
+               "Clark St & Wrightwood Ave", "Lakeview Ave & Fullerton Pkwy", "DuSable Lake Shore Dr & North Blvd")
+#
+
+Num_Rnt_Loc <- c(61089, 36710, 35885, 34530, 30585, 30079, 29670, 28149, 26779, 25781, 25377, 25083, 24864, 24755, 
+                 23699, 23218, 23040, 22230, 22226, 22180, 21928, 21333, 21320, 21141, 20629)
+
+# now combine 2 values above into one data frame using data.frame function, I'll name it "PlotE".
+PlotE <- data.frame(Locations, Num_Rnt_Loc)
+
+###  Share phase (Visulizations)
+
+#Total Number of Rides by day of Week - Members vs Casual
+BkeData2021_b %>% 
+  mutate(weekday = wday(started_at, label = TRUE)) %>% 
+  group_by(member_casual, weekday) %>%  
+  summarise(number_of_rides = n()) %>% 
+  arrange(weekday, member_casual) %>% 
+  ggplot(aes(x= weekday, y= number_of_rides, fill= member_casual))+ 
+  scale_y_continuous(labels = function(x) format(x, scientific = FALSE, big.mark = ","))+ 
+  geom_col(position = "dodge")+
+  scale_color_manual(values=c("#000000", "#000000"))+
+  scale_fill_manual(values=c("#00A4CCFF", "#ff9b00"))+ 
+  labs(x= "Day of week", y= "Total number of rides", fill="",title="Total number of rides by day of week for 2021 - Member vs Casual")
+  
+# Which type of bike is the most rented, Member vs Casual for 2021. 
+BkeData2021_b %>%
+  group_by(member_casual, rideable_type)%>%
+  summarise(number_of_rides=n()) %>%
+  arrange(member_casual, rideable_type)%>%
+  ggplot(aes(x= rideable_type, y= number_of_rides, fill=member_casual))+
+  geom_col(position= "dodge")+
+  scale_color_manual(values=c("#000000", "#000000"))+
+  scale_fill_manual(values=c("#00A4CCFF", "#ff9b00"))+ theme_bw()+ 
+  labs(x= "Type of bike", y= "Total number of rides", fill="", title= "Most popular rented bike type - Member vs Casual for 2021")
+
+# Average rental times for 2021 - Member vs Casual
+BkeData2021_b %>% 
+  mutate(weekday = wday(started_at, label = TRUE)) %>%
+  group_by(member_casual, weekday) %>% 
+  summarise(average_duration = mean(tripduration)/60, count= length(tripduration))%>%
+  arrange(weekday, member_casual)%>%
+  ggplot(aes(x=weekday, y= average_duration, fill = member_casual))+
+  geom_col(position = "dodge")+ 
+  scale_color_manual(values=c("#000000", "#000000"))+
+  scale_fill_manual(values=c("#0acc4a", "#7056c2"))+ 
+  theme_bw()+ 
+  labs(x= "Day of the week", y= "Average rental time in minutes", title = "Average rental times for 2021 - Member vs Casual")
+
+# Number of rental per month member vs Casual riders
+
+# BkeData2021_b %>%
+  group_by(month, member_casual) %>%
+  summarise(number_of_rides = n(),.groups = "drop") %>%
+  ggplot(aes(x= month, y= number_of_rides, fill=member_casual))+
+  scale_y_continuous(labels = function(x) format(x, scientific = FALSE, big.mark = ","))+
+  geom_col(position = "dodge")+
+  labs(x= "Month", y= "Number of Rides", title = "Number of rentals for 2021 - Members vs Casual")
+
+# 25 top places bikes were rented for 2021
+PlotE %>%
+ ggplot(aes(x= Num_Rnt_Loc, y= Locations))+
+ geom_bar(stat="identity", position= "identity", fill="orange", color= "black")+
+ geom_text(aes(label=Num_Rnt_Loc ), vjust=.5, hjust=1.2, color="black")+
+ labs(x= "Number of rentals casual & member combined", y= "Location bikes were rented", title = "25 top places bikes were rented for 2021")
