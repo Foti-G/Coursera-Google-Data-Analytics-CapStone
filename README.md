@@ -1,7 +1,7 @@
 # Coursera-Google-Data-Analytics-CapStone
 Bike Share Data Analytics 
 
-https://www.kaggle.com/code/fotigalanis/google-data-analytics-capstone/notebook
+https://www.kaggle.com/code/fotigalanis/google-data-analytics-capstone-v2
 
 Introduction
 
